@@ -12,12 +12,13 @@
 #include <time.h>
 #define LOKAL_PORT 80
 #define BAK_LOGG 10 // Størrelse på for kø ventende forespørsler 
+char fileExt[10];
 char filePath[100];
+char filePathCpy[100];
 char requestType[10];
 char httpVer[10];
 char input[50];
-void sendHeader(int fileDescriptor);
-void fileType(char type);
+void sendHeader(int);
 int main ()
 {
 
@@ -26,7 +27,7 @@ int main ()
   int sd, ny_sd;
   int file; 
   char buffer[BUFSIZ];
-  char *token;
+  char *token, *token2;
   pid_t process_id =0;
   pid_t sid = 0;
   pid_t fid = 0;
@@ -86,10 +87,8 @@ int main ()
    if(0==fork()) {
 	int j=5;
 	int k = 0;
-	
-
-
-      recv(ny_sd,buffer,sizeof(buffer),0);
+  int p =0;
+  recv(ny_sd,buffer,sizeof(buffer),0);
 
 	token = strtok(buffer, " ");
 	while(token != NULL)
@@ -109,7 +108,18 @@ int main ()
 		token = strtok(NULL, " ");
 		k++;
 	}
-	
+	strcpy(filePathCpy,filePath);
+	token2 = strtok(filePathCpy,".");
+  while(token2 != NULL)
+  {
+     if(p==1)
+    {
+       strcpy(fileExt,token2);
+       break;
+     }
+     p++;
+   }
+   
 	if(strlen(filePath) == 1)
 	{
 		file=open(indexPath,O_RDONLY);
@@ -143,7 +153,6 @@ int main ()
 }
 void sendHeader(int fileDescriptor)
 {
-	
 	char data[1024];
 	char buff[1024];
 	const char* bla;
@@ -153,50 +162,18 @@ void sendHeader(int fileDescriptor)
 	
 	currtime = time(NULL);
 	loc_time = localtime(&currtime);
-	
-	
-	
+
 	sprintf(buff,"HTTP/1.1 200 OK\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
 	
 	strftime(buff,sizeof(buff),"Date: %a, %d %b %Y %H:%M:%S %Z\r\n", loc_time);
 	send(fileDescriptor,buff,strlen(buff),0);
 	
-	sprintf(buff,"Server: hal9000 ver 1.0 (Ubuntu)\r\n");
-	send(fileDescriptor,buff,strlen(buff),0);
-  
-  //sprintf(buff,input);fff
-  memcpy()
-	send(fileDescriptor,buff,strlen(buff),0);
+
+   strcat(buff,fileExt);
+ send(fileDescriptor,buff,strlen(buff),0);
 
 	sprintf(buff,"\n");
 	send(fileDescriptor,buff,strlen(buff),0);
-
-}
-void fileType(char type)
-{
-  char *token;
-  char fileExt[10];
-  token = strtok(filePath,".");
-  int ret;
-  int k=0;
-  while(token !=NULL)
-  {
-    if(k==1)
-    {
-        strcpy(&type,token);
-    }
-    k++;
-  }
-  char html[10];
-  strcpy(html,"html");
-
-  if(strcmp(fileExt,html)==0)
-  {
-    strcpy(input,"text/html");
-  }
-  else
-    strcpy(input,"text/plain");
-
 
 }
