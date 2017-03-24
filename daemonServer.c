@@ -19,7 +19,7 @@ char requestType[10];
 char httpVer[10];
 char input[50];
 void sendHeader(int);
-int main ()
+int main ()//
 {
 
   struct sockaddr_in  lok_adr;
