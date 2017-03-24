@@ -15,8 +15,9 @@
 char filePath[100];
 char requestType[10];
 char httpVer[10];
-FILE* fileInfo;
+char input[50];
 void sendHeader(int fileDescriptor);
+void fileType(char type);
 int main ()
 {
 
@@ -163,16 +164,38 @@ void sendHeader(int fileDescriptor)
 	
 	sprintf(buff,"Server: hal9000 ver 1.0 (Ubuntu)\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
-	
-	//fgets(data,sizeof(data),fileInfo);
-	//fclose(fileInfo);
-	//send(fileDescriptor,data,strlen(data),0);
-	
+  
+  sprintf(buff,input);
+	send(fileDescriptor,buff,strlen(buff),0);
+
 	sprintf(buff,"\n");
 	send(fileDescriptor,buff,strlen(buff),0);
 
 }
 void fileType(char type)
 {
-	
+  char *token;
+  char fileExt[10];
+  token = strtok(filePath,".");
+  int ret;
+  int k=0;
+  while(token !=NULL)
+  {
+    if(k==1)
+    {
+        strcpy(&type,token);
+    }
+    k++;
+  }
+  char html[10];
+  strcpy(html,"html");
+
+  if(strcmp(fileExt,html)==0)
+  {
+    strcpy(input,"text/html");
+  }
+  else
+    strcpy(input,"text/plain");
+
+
 }
