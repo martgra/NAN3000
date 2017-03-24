@@ -165,7 +165,8 @@ void sendHeader(int fileDescriptor)
 	sprintf(buff,"Server: hal9000 ver 1.0 (Ubuntu)\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
   
-  sprintf(buff,input);
+  //sprintf(buff,input);fff
+  memcpy()
 	send(fileDescriptor,buff,strlen(buff),0);
 
 	sprintf(buff,"\n");
