@@ -20,7 +20,7 @@ char requestType[10];
 char httpVer[10];
 char input[50];
 char *sqlOutput;
-void sendHeader(int,int);
+void sendHeader(int,int,int);
 static int callback(void *data, int argc, char **argv,char **azColName)
 {
   int i;
@@ -144,7 +144,7 @@ int main ()
       //sendHeader(ny_sd);
       if(access(filePath,F_OK)!=-1)
       {
-        sendHeader(ny_sd,0);
+        sendHeader(ny_sd,0,sd_buff.st_size);
         if(strcmp(requestType,"GET")==0)
         {
           // sqlite3 *db;
@@ -176,7 +176,7 @@ int main ()
       }
       else
       {
-        sendHeader(ny_sd,1);
+        sendHeader(ny_sd,0,sd_buff.st_size);
         char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
         send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
       }
@@ -194,7 +194,7 @@ int main ()
   return 0;
 }
 
-void sendHeader(int fileDescriptor,int rQ)
+void sendHeader(int fileDescriptor,int rQ,int size)
 {
 
 
@@ -265,6 +265,9 @@ void sendHeader(int fileDescriptor,int rQ)
 	send(fileDescriptor,buff,strlen(buff),0);
 
   sprintf(buff,"Server: ... ver1.0 (Ubuntu)\r\n");
+	send(fileDescriptor,buff,strlen(buff),0);
+
+  sprintf(buff,"Content-Length: %d\r\n",size);
 	send(fileDescriptor,buff,strlen(buff),0);
 
   sprintf(buff,"Content-Type: %s\r\n",contentType);
