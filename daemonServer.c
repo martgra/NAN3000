@@ -21,17 +21,6 @@ char httpVer[10];
 char input[50];
 char *sqlOutput;
 void sendHeader(int,int,int);
-static int callback(void *data, int argc, char **argv,char **azColName)
-{
-  int i;
-  char *result = malloc(BUFSIZ);
-  for(i=0;i<argc;i++)
-  {
-    sprintf(result,"%s = %s\n",azColName[i],argv[i]?argv[i] : "NULL");
-  }
-  strcpy(sqlOutput,result);
-  return 0;
-}
 int main ()
 {
 
@@ -40,7 +29,7 @@ int main ()
   int sd, ny_sd;
   int file; 
   char buffer[BUFSIZ];
-  char *token, *token2;
+  char *token;
   pid_t process_id =0;
   pid_t sid = 0;
   pid_t fid = 0;
@@ -71,6 +60,7 @@ int main ()
       if(sid<0)
 	    exit(1);
       freopen("error.log","w+",stderr);
+
       chdir("/home/nan3000/Desktop/webtjener/webroot");
       if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
           perror("chroot /home/nan3000/Desktop/webtjener/webroot");
@@ -88,7 +78,7 @@ int main ()
   listen(sd, BAK_LOGG);
   struct sigaction sigchld_action = {
         .sa_handler = SIG_DFL,
-          .sa_flags = SA_NOCLDWAIT
+        .sa_flags = SA_NOCLDWAIT
   };
   sigaction(SIGCHLD, &sigchld_action, NULL);
   
@@ -98,7 +88,6 @@ int main ()
   while(1){ 
     // Aksepterer mottatt forespørsel
     ny_sd = accept(sd, NULL, NULL);
-    //memset(filePath,0,100);
    if(0==fork()) {
 	int j=5;
 	int k = 0;
@@ -124,72 +113,57 @@ int main ()
 	}
   
 	if(strlen(filePath) == 1)
-	{
 		file=open(indexPath,O_RDONLY);
-    
-	}
 
 	else
-	{
 		file=open(filePath,O_RDONLY);	
-	}
+
   
       
       
-      fstat(file,&sd_buff);
-      dup2(ny_sd, 1); // redirigerer socket til standard utgang
-      setuid(500);
-      setgid(500);
+  fstat(file,&sd_buff);
+  dup2(ny_sd, 1); // redirigerer socket til standard utgang
+  setuid(500);
+  setgid(500);
      
-      //sendHeader(ny_sd);
-      if(access(filePath,F_OK)!=-1)
-      {
-        sendHeader(ny_sd,0,sd_buff.st_size);
-        if(strcmp(requestType,"GET")==0)
-        {
-          // sqlite3 *db;
-          // char *errMsg = 0;
-          // char *sql;
-          // int rc;
-          // const char* data = "BVB";
-          // rc = sqlite3_open("database",&db);
-          
-          // sql = "SELECT * from Informasjon";
-          // rc = sqlite3_exec(db,sql,callback,(void*)data,&errMsg);
-          // send(ny_sd,sqlOutput,strlen(sqlOutput),0);
-          sendfile(ny_sd,file,0,sd_buff.st_size);
-          close(file);
-        }
-        if(strcmp(requestType,"POST"))
-        {
-          //DO POST REQUESTS
-        }
-        if(strcmp(requestType,"PUT"))
-        {
-          //DO PUT REQUESTS
-        }
-        if(strcmp(requestType,"DELETE"))
-        {
-          //DO DELETE REQUEST
-        }
-        
-      }
-      else
-      {
-        sendHeader(ny_sd,0,sd_buff.st_size);
-        char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
-        send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
-      }
-      
-      // Sørger for å stenge socket for skriving og lesing
-      // NB! Frigjør ingen plass i fildeskriptortabellen
-      shutdown(ny_sd, SHUT_RDWR);
+  if(access(filePath,F_OK)!=-1)
+  {
+    sendHeader(ny_sd,0,sd_buff.st_size);
+    if(strcmp(requestType,"GET")==0)
+    {
+      sendfile(ny_sd,file,0,sd_buff.st_size);
+      close(file);
     }
+    if(strcmp(requestType,"POST"))
+    {
+      //DO POST REQUESTS
+    }
+    if(strcmp(requestType,"PUT"))
+    {
+      //DO PUT REQUESTS
+    }
+    if(strcmp(requestType,"DELETE"))
+    {
+      //DO DELETE REQUEST
+    }
+    
+  }
+  else
+  {
+    sendHeader(ny_sd,0,sd_buff.st_size);
+    char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
+    send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
+  }
+  
+  // Sørger for å stenge socket for skriving og lesing
+  // NB! Frigjør ingen plass i fildeskriptortabellen
+    shutdown(ny_sd, SHUT_RDWR);
+  } 
 
-    else {
-      exit(0);
-      close(ny_sd);
-    }
+else {
+  exit(0);
+  close(ny_sd);
+}
   }
   return 0;
 }
@@ -199,12 +173,9 @@ void sendHeader(int fileDescriptor,int rQ,int size)
 
 
   int i;
-	char data[1024];
 	char buff[1024];
   char contentType[256];
   
-	const char* bla;
-	//fileInfo = popen("file -i /xml.xml | awk '{print $2,$3}'","r");
 	time_t currtime;
 	struct tm *loc_time;
 	
@@ -214,8 +185,6 @@ void sendHeader(int fileDescriptor,int rQ,int size)
 
   for(int i=0;i<strlen(filePathCopy);i++)
   {
-    
-      
     if(filePathCopy[i]!='.')
     {
       p++;
@@ -226,45 +195,36 @@ void sendHeader(int fileDescriptor,int rQ,int size)
       break;
     }
   }
-
-  
+ 
   if(strcmp(p,"\0")==0) sprintf(contentType,"text/html");
-    
   if(strcmp(p,"html")==0) sprintf(contentType,"text/html");
-
   if(strcmp(p,"txt")==0) sprintf(contentType,"text/plain");
-
   if(strcmp(p,"png")==0) sprintf(contentType,"image/png");
-  
   if(strcmp(p,"jpg")==0) sprintf(contentType,"image/jpg");
-
   if(strcmp(p,"xml")==0) sprintf(contentType,"application/xml");
-  
   if(strcmp(p,"xslt")==0) sprintf(contentType,"application/xml+xslt");
-  
   if(strcmp(p,"css")==0) sprintf(contentType,"text/css");
-  
   if(strcmp(p,"js")==0) sprintf(contentType,"application/javascript");
 
 	currtime = time(NULL);
 	loc_time = localtime(&currtime);
   if(rQ==0) // hvis filen eksisterer
   {
-            sprintf(buff,"HTTP/1.1 200 OK\r\n");
-            send(fileDescriptor,buff,strlen(buff),0);
+      sprintf(buff,"HTTP/1.1 200 OK\r\n");
+      send(fileDescriptor,buff,strlen(buff),0);
   }
       
   if(rQ==1) //Hvis filen ikke eksisterer
   {
-            sprintf(buff,"HTTP/1.1 404 Not Found\r\n");
-            send(fileDescriptor,buff,strlen(buff),0);
+      sprintf(buff,"HTTP/1.1 404 Not Found\r\n");
+      send(fileDescriptor,buff,strlen(buff),0);
   }
   
   
 	strftime(buff,sizeof(buff),"Date: %a, %d %b %Y %H:%M:%S %Z\r\n", loc_time);
 	send(fileDescriptor,buff,strlen(buff),0);
 
-  sprintf(buff,"Server: ... ver1.0 (Ubuntu)\r\n");
+  sprintf(buff,"Server: HAL9000 ver1.0 (Ubuntu)\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
 
   sprintf(buff,"Content-Length: %d\r\n",size);
