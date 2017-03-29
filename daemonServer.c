@@ -12,11 +12,13 @@
 #include <time.h>
 #define LOKAL_PORT 80
 #define BAK_LOGG 10 // Størrelse på for kø ventende forespørsler 
+char fileExt[100];
 char filePath[100];
+char filePathCopy[100];
 char requestType[10];
 char httpVer[10];
-FILE* fileInfo;
-void sendHeader(int fileDescriptor);
+char input[50];
+void sendHeader(int,int);
 int main ()
 {
 
@@ -25,7 +27,7 @@ int main ()
   int sd, ny_sd;
   int file; 
   char buffer[BUFSIZ];
-  char *token;
+  char *token, *token2;
   pid_t process_id =0;
   pid_t sid = 0;
   pid_t fid = 0;
@@ -77,7 +79,6 @@ int main ()
   int result;
   int removeFile;
 	char indexPath[10] = "index.html";
-  //char webroot[8] ="webroot";
   while(1){ 
     // Aksepterer mottatt forespørsel
     ny_sd = accept(sd, NULL, NULL);
@@ -85,11 +86,8 @@ int main ()
    if(0==fork()) {
 	int j=5;
 	int k = 0;
-	
-
-
-      recv(ny_sd,buffer,sizeof(buffer),0);
-
+  int p =0;
+  recv(ny_sd,buffer,sizeof(buffer),0);
 	token = strtok(buffer, " ");
 	while(token != NULL)
 	{
@@ -108,26 +106,55 @@ int main ()
 		token = strtok(NULL, " ");
 		k++;
 	}
-	
+  
 	if(strlen(filePath) == 1)
 	{
 		file=open(indexPath,O_RDONLY);
+    
 	}
 
 	else
 	{
-		file=open(filePath,O_RDONLY);
-		
+		file=open(filePath,O_RDONLY);	
 	}
-
+  
+      
       
       fstat(file,&sd_buff);
       dup2(ny_sd, 1); // redirigerer socket til standard utgang
       setuid(500);
       setgid(500);
-      sendHeader(ny_sd);
-      sendfile(ny_sd,file,0,sd_buff.st_size);
-      close(file);
+     
+      //sendHeader(ny_sd);
+      if(access(filePath,F_OK)!=-1)
+      {
+        sendHeader(ny_sd,0);
+        if(strcmp(requestType,"GET")==0)
+        {
+            sendfile(ny_sd,file,0,sd_buff.st_size);
+            close(file);
+        }
+        if(strcmp(requestType,"POST"))
+        {
+          //DO POST REQUESTS
+        }
+        if(strcmp(requestType,"PUT"))
+        {
+          //DO PUT REQUESTS
+        }
+        if(strcmp(requestType,"DELETE"))
+        {
+          //DO DELETE REQUEST
+        }
+        
+      }
+      else
+      {
+        sendHeader(ny_sd,1);
+        char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
+        send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
+      }
+      
       // Sørger for å stenge socket for skriving og lesing
       // NB! Frigjør ingen plass i fildeskriptortabellen
       shutdown(ny_sd, SHUT_RDWR);
@@ -140,39 +167,83 @@ int main ()
   }
   return 0;
 }
-void sendHeader(int fileDescriptor)
+void sendHeader(int fileDescriptor,int rQ)
 {
-	
+
+
+  int i;
 	char data[1024];
 	char buff[1024];
+  char contentType[256];
+  
 	const char* bla;
 	//fileInfo = popen("file -i /xml.xml | awk '{print $2,$3}'","r");
 	time_t currtime;
 	struct tm *loc_time;
 	
+  strcpy(filePathCopy,filePath); // inholdet i filePath blir kopiert til filePathCopy
+
+  char *p = filePathCopy;
+
+  for(int i=0;i<strlen(filePathCopy);i++)
+  {
+    
+      
+    if(filePathCopy[i]!='.')
+    {
+      p++;
+    }
+    else
+    {
+      p++;
+      break;
+    }
+  }
+
+  
+  if(strcmp(p,"\0")==0) sprintf(contentType,"text/html");
+    
+  if(strcmp(p,"html")==0) sprintf(contentType,"text/html");
+
+  if(strcmp(p,"txt")==0) sprintf(contentType,"text/plain");
+
+  if(strcmp(p,"png")==0) sprintf(contentType,"image/png");
+  
+  if(strcmp(p,"jpg")==0) sprintf(contentType,"image/jpg");
+
+  if(strcmp(p,"xml")==0) sprintf(contentType,"application/xml");
+  
+  if(strcmp(p,"xslt")==0) sprintf(contentType,"application/xml+xslt");
+  
+  if(strcmp(p,"css")==0) sprintf(contentType,"text/css");
+  
+  if(strcmp(p,"js")==0) sprintf(contentType,"application/javascript");
+
 	currtime = time(NULL);
 	loc_time = localtime(&currtime);
-	
-	
-	
-	sprintf(buff,"HTTP/1.1 200 OK\r\n");
-	send(fileDescriptor,buff,strlen(buff),0);
-	
+  if(rQ==0)
+  {
+            sprintf(buff,"HTTP/1.1 200 OK\r\n");
+            send(fileDescriptor,buff,strlen(buff),0);
+  }
+      
+  if(rQ==1)
+  {
+            sprintf(buff,"HTTP/1.1 404 Not Found\r\n");
+            send(fileDescriptor,buff,strlen(buff),0);
+  }
+  
+  
 	strftime(buff,sizeof(buff),"Date: %a, %d %b %Y %H:%M:%S %Z\r\n", loc_time);
 	send(fileDescriptor,buff,strlen(buff),0);
-	
-	sprintf(buff,"Server: hal9000 ver 1.0 (Ubuntu)\r\n");
-	send(fileDescriptor,buff,strlen(buff),0);
-	
-	//fgets(data,sizeof(data),fileInfo);
-	//fclose(fileInfo);
-	//send(fileDescriptor,data,strlen(data),0);
-	
-	sprintf(buff,"\n");
+
+  sprintf(buff,"Server: ... ver1.0 (Ubuntu)\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
 
-}
-void fileType(char type)
-{
-	
+  sprintf(buff,"Content-Type: %s\r\n",contentType);
+	send(fileDescriptor,buff,strlen(buff),0);
+
+	sprintf(buff,"\r\n");
+	send(fileDescriptor,buff,strlen(buff),0);
+
 }
