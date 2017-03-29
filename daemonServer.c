@@ -221,13 +221,13 @@ void sendHeader(int fileDescriptor,int rQ)
 
 	currtime = time(NULL);
 	loc_time = localtime(&currtime);
-  if(rQ==0)
+  if(rQ==0) // hvis filen eksisterer
   {
             sprintf(buff,"HTTP/1.1 200 OK\r\n");
             send(fileDescriptor,buff,strlen(buff),0);
   }
       
-  if(rQ==1)
+  if(rQ==1) //Hvis filen ikke eksisterer
   {
             sprintf(buff,"HTTP/1.1 404 Not Found\r\n");
             send(fileDescriptor,buff,strlen(buff),0);
