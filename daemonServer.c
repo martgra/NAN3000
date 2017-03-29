@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <time.h>
+#include <sqlite3.h>
 #define LOKAL_PORT 80
 #define BAK_LOGG 10 // Størrelse på for kø ventende forespørsler 
 char fileExt[100];
@@ -18,7 +19,19 @@ char filePathCopy[100];
 char requestType[10];
 char httpVer[10];
 char input[50];
+char *sqlOutput;
 void sendHeader(int,int);
+static int callback(void *data, int argc, char **argv,char **azColName)
+{
+  int i;
+  char *result = malloc(BUFSIZ);
+  for(i=0;i<argc;i++)
+  {
+    sprintf(result,"%s = %s\n",azColName[i],argv[i]?argv[i] : "NULL");
+  }
+  strcpy(sqlOutput,result);
+  return 0;
+}
 int main ()
 {
 
@@ -32,6 +45,7 @@ int main ()
   pid_t sid = 0;
   pid_t fid = 0;
   sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  
   
   // For at operativsystemet skal reservere porten når tjeneren dør
   setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
@@ -56,6 +70,7 @@ int main ()
       sid = setsid();
       if(sid<0)
 	    exit(1);
+      freopen("error.log","w+",stderr);
       chdir("/home/nan3000/Desktop/webtjener/webroot");
       if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
           perror("chroot /home/nan3000/Desktop/webtjener/webroot");
@@ -76,6 +91,7 @@ int main ()
           .sa_flags = SA_NOCLDWAIT
   };
   sigaction(SIGCHLD, &sigchld_action, NULL);
+  
   int result;
   int removeFile;
 	char indexPath[10] = "index.html";
@@ -131,8 +147,18 @@ int main ()
         sendHeader(ny_sd,0);
         if(strcmp(requestType,"GET")==0)
         {
-            sendfile(ny_sd,file,0,sd_buff.st_size);
-            close(file);
+          // sqlite3 *db;
+          // char *errMsg = 0;
+          // char *sql;
+          // int rc;
+          // const char* data = "BVB";
+          // rc = sqlite3_open("database",&db);
+          
+          // sql = "SELECT * from Informasjon";
+          // rc = sqlite3_exec(db,sql,callback,(void*)data,&errMsg);
+          // send(ny_sd,sqlOutput,strlen(sqlOutput),0);
+          sendfile(ny_sd,file,0,sd_buff.st_size);
+          close(file);
         }
         if(strcmp(requestType,"POST"))
         {
@@ -167,6 +193,7 @@ int main ()
   }
   return 0;
 }
+
 void sendHeader(int fileDescriptor,int rQ)
 {
 
