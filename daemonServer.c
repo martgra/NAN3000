@@ -64,8 +64,8 @@ int main ()
       fdI = open("stdout.txt",O_RDWR);
       dup2(2,fdE);
       dup2(4,fdI); 
-      char testbuff[10] = "1234567890";
-      write(4,testbuff,10);
+      
+      
       chdir("/home/nan3000/Desktop/webtjener/webroot");
       if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
           perror("chroot /home/nan3000/Desktop/webtjener/webroot");
@@ -73,6 +73,8 @@ int main ()
       }
       close(STDIN_FILENO);
       close(STDOUT_FILENO);
+     
+
 
   }
   else
@@ -93,6 +95,18 @@ int main ()
     // Aksepterer mottatt forespørsel
     ny_sd = accept(sd, NULL, NULL);
    if(0==fork()) {
+      /**DATABASE TILKOBLING**/
+      sqlite3 *db;
+      char *zErrMsg =0;
+      int sqFd;
+      sqFd = sqlite3_open("testb",&db);
+      if( sqFd ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        //return(0);
+      }
+      else{
+        fprintf(stderr, "Opened database successfully\n");
+      }
 	int j=5;
 	int k = 0;
   int p =0;
@@ -133,11 +147,14 @@ int main ()
      
   if(access(filePath,F_OK)!=-1)
   {
+    
     fstat(file,&sd_buff);
     sendHeader(ny_sd,0,sd_buff.st_size);
     if(strcmp(requestType,"GET")==0)
     {
-      perror("GET 1337 HAL9000");
+      char testbuff[BUFSIZ] = "HAL9000 1337\n\n";
+      write(4,testbuff,strlen(testbuff));
+      
       sendfile(ny_sd,file,0,sd_buff.st_size);
       close(file);
     }
@@ -161,8 +178,6 @@ int main ()
     four_four = open("404.html",O_RDONLY);
     fstat(four_four,&sd_buff);
     sendHeader(ny_sd,1,sd_buff.st_size);
-    //char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
-    //send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
     sendfile(ny_sd,four_four,0,sd_buff.st_size);
     close(four_four);
   }
