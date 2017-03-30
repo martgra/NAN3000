@@ -27,7 +27,7 @@ int main ()
   struct sockaddr_in  lok_adr;
   struct stat sd_buff;
   int sd, ny_sd;
-  int file; 
+  int file, four_four; 
   char buffer[BUFSIZ];
   char *token;
   pid_t process_id =0;
@@ -94,6 +94,7 @@ int main ()
   int p =0;
   recv(ny_sd,buffer,sizeof(buffer),0);
 	token = strtok(buffer, " ");
+  
 	while(token != NULL)
 	{
 		if(k==0)
@@ -150,9 +151,12 @@ int main ()
   }
   else
   {
-    sendHeader(ny_sd,0,sd_buff.st_size);
-    char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
-    send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
+    four_four = open("404.html",O_RDONLY);
+    sendHeader(ny_sd,1,sd_buff.st_size);
+    //char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
+    //send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
+    sendfile(ny_sd,four_four,0,sd_buff.st_size);
+    close(four_four);
   }
   
   // Sørger for å stenge socket for skriving og lesing
@@ -217,6 +221,7 @@ void sendHeader(int fileDescriptor,int rQ,int size)
       
   if(rQ==1) //Hvis filen ikke eksisterer
   {
+      sprintf(contentType,"text/html");
       sprintf(buff,"HTTP/1.1 404 Not Found\r\n");
       send(fileDescriptor,buff,strlen(buff),0);
   }
