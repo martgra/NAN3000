@@ -26,7 +26,7 @@ int main ()
 
   struct sockaddr_in  lok_adr;
   struct stat sd_buff;
-  int sd, ny_sd,fdE;
+  int sd, ny_sd,fdE,fdI;
   int file, four_four; 
   char buffer[BUFSIZ];
   char *token;
@@ -61,8 +61,11 @@ int main ()
 	    exit(1);
       close(STDERR_FILENO);
       fdE = open("errorlog.log",O_RDWR);
+      fdI = open("stdout.txt",O_RDWR);
       dup2(2,fdE);
-      
+      dup2(4,fdI); 
+      char testbuff[10] = "1234567890";
+      write(4,testbuff,10);
       chdir("/home/nan3000/Desktop/webtjener/webroot");
       if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
           perror("chroot /home/nan3000/Desktop/webtjener/webroot");
@@ -70,7 +73,6 @@ int main ()
       }
       close(STDIN_FILENO);
       close(STDOUT_FILENO);
-      //close(STDERR_FILENO);  
 
   }
   else
@@ -124,13 +126,14 @@ int main ()
   
       
       
-  fstat(file,&sd_buff);
+  
   dup2(ny_sd, 1); // redirigerer socket til standard utgang
   setuid(500);
   setgid(500);
      
   if(access(filePath,F_OK)!=-1)
   {
+    fstat(file,&sd_buff);
     sendHeader(ny_sd,0,sd_buff.st_size);
     if(strcmp(requestType,"GET")==0)
     {
@@ -154,7 +157,9 @@ int main ()
   }
   else
   {
+   
     four_four = open("404.html",O_RDONLY);
+    fstat(four_four,&sd_buff);
     sendHeader(ny_sd,1,sd_buff.st_size);
     //char fileDoesentExist[]="<h1>404 FILE DOES NOT EXIST</h1>";
     //send(ny_sd,fileDoesentExist,strlen(fileDoesentExist),0);
