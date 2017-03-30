@@ -1,0 +1,8 @@
+HHAHAHA: Bad file descriptor
+HHAHAHA: Invalid argument
+HHAHAHA: Invalid argument
+HHAHAHA: Invalid argument
+HHAHAHA: Bad file descriptor
+HHAHAHA: Invalid argument
+HHAHAHA: Invalid argument
+HHAHAHA: Invalid argument

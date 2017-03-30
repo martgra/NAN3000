@@ -26,7 +26,7 @@ int main ()
 
   struct sockaddr_in  lok_adr;
   struct stat sd_buff;
-  int sd, ny_sd;
+  int sd, ny_sd,fdE;
   int file, four_four; 
   char buffer[BUFSIZ];
   char *token;
@@ -59,8 +59,10 @@ int main ()
       sid = setsid();
       if(sid<0)
 	    exit(1);
-      freopen("error.log","w+",stderr);
-
+      close(STDERR_FILENO);
+      fdE = open("errorlog.log",O_RDWR);
+      dup2(2,fdE);
+      
       chdir("/home/nan3000/Desktop/webtjener/webroot");
       if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
           perror("chroot /home/nan3000/Desktop/webtjener/webroot");
@@ -68,7 +70,7 @@ int main ()
       }
       close(STDIN_FILENO);
       close(STDOUT_FILENO);
-      close(STDERR_FILENO);  
+      //close(STDERR_FILENO);  
 
   }
   else
@@ -132,6 +134,7 @@ int main ()
     sendHeader(ny_sd,0,sd_buff.st_size);
     if(strcmp(requestType,"GET")==0)
     {
+      perror("GET 1337 HAL9000");
       sendfile(ny_sd,file,0,sd_buff.st_size);
       close(file);
     }
