@@ -160,10 +160,11 @@ int main ()
     shutdown(ny_sd, SHUT_RDWR);
   } 
 
-else {
-  exit(0);
-  close(ny_sd);
-}
+  else 
+  {
+    exit(0);
+    close(ny_sd);
+  }
   }
   return 0;
 }
