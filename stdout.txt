@@ -1,4 +1,9 @@
-HAL9000 1337
-
-HAL9000 1337
-
+<ID>1</ID>
+<Navn>test</Navn>
+<Telefon>94033153</Telefon>
+<ID>2</ID>
+<Navn>te1st</Navn>
+<Telefon>94033133</Telefon>
+<ID>3</ID>
+<Navn>te3st</Navn>
+<Telefon>94033333</Telefon>

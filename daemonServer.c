@@ -20,7 +20,9 @@ char requestType[10];
 char httpVer[10];
 char input[50];
 char *sqlOutput;
+int stop =0;
 void sendHeader(int,int,int);
+int skriv_rad(void *,int , char **,char **);
 int main ()
 {
 
@@ -61,11 +63,12 @@ int main ()
 	    exit(1);
       close(STDERR_FILENO);
       fdE = open("errorlog.log",O_RDWR);
-      fdI = open("stdout.txt",O_RDWR);
       dup2(2,fdE);
-      dup2(4,fdI); 
-      
-      
+
+      fdI = open("stdout.txt", O_RDWR | O_TRUNC);
+      dup2(4,fdI);
+
+
       chdir("/home/nan3000/Desktop/webtjener/webroot");
       if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
           perror("chroot /home/nan3000/Desktop/webtjener/webroot");
@@ -90,23 +93,15 @@ int main ()
   
   int result;
   int removeFile;
-	char indexPath[10] = "index.html";
+
+  char indexPath[10] = "index.html";
+
   while(1){ 
     // Aksepterer mottatt forespørsel
     ny_sd = accept(sd, NULL, NULL);
    if(0==fork()) {
-      /**DATABASE TILKOBLING**/
-      sqlite3 *db;
-      char *zErrMsg =0;
-      int sqFd;
-      sqFd = sqlite3_open("testb",&db);
-      if( sqFd ){
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        //return(0);
-      }
-      else{
-        fprintf(stderr, "Opened database successfully\n");
-      }
+      
+
 	int j=5;
 	int k = 0;
   int p =0;
@@ -130,36 +125,49 @@ int main ()
 		token = strtok(NULL, " ");
 		k++;
 	}
-  
-	if(strlen(filePath) == 1)
-		file=open(indexPath,O_RDONLY);
+  dup2(ny_sd, 1); // redirigerer socket til standard utgang
 
+  	if(strlen(filePath) == 1)
+		file=open(indexPath,O_RDONLY);
+	
 	else
 		file=open(filePath,O_RDONLY);	
 
-  
-      
-      
-  
-  dup2(ny_sd, 1); // redirigerer socket til standard utgang
+/**DATABASE TILKOBLING**/
+      sqlite3 *db;
+      char *zErrMsg =0;
+      int sqFd;
+      const char* data = "Callback function called";
+      sqFd = sqlite3_open("testb",&db);
+      if( sqFd ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+      }
+      else{
+        fprintf(stderr, "Opened database successfully\n");
+      }
+      char *sqlQuerry;
+      sqlQuerry = "SELECT * FROM Informasjon";
+	
   setuid(500);
   setgid(500);
-     
+     fstat(file,&sd_buff);
   if(access(filePath,F_OK)!=-1)
   {
+     
+      
     
-    fstat(file,&sd_buff);
-    sendHeader(ny_sd,0,sd_buff.st_size);
+   sendHeader(ny_sd,0,sd_buff.st_size);
+
     if(strcmp(requestType,"GET")==0)
-    {
-      char testbuff[BUFSIZ] = "HAL9000 1337\n\n";
-      write(4,testbuff,strlen(testbuff));
+    { 
       
       sendfile(ny_sd,file,0,sd_buff.st_size);
       close(file);
+	sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
     }
-    if(strcmp(requestType,"POST"))
+    if(strcmp(requestType,"POST")==0)
     {
+     
       //DO POST REQUESTS
     }
     if(strcmp(requestType,"PUT"))
@@ -255,6 +263,9 @@ void sendHeader(int fileDescriptor,int rQ,int size)
 
   sprintf(buff,"Server: HAL9000 ver1.0 (Ubuntu)\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
+  
+sprintf(buff,"%s\r\n",filePath);
+	send(fileDescriptor,buff,strlen(buff),0);
 
   sprintf(buff,"Content-Length: %d\r\n",size);
 	send(fileDescriptor,buff,strlen(buff),0);
@@ -265,4 +276,26 @@ void sendHeader(int fileDescriptor,int rQ,int size)
 	sprintf(buff,"\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
 
+}
+int skriv_rad(void *ubrukt,
+              int ant_kol, 
+              char **kolonne,
+              char **kol_navn) {
+
+  int i;
+  char buff2[1024];
+  char buff3[BUFSIZ];
+  
+  for(i=0; i<ant_kol; i++)
+  {
+    
+    snprintf(buff2,sizeof(buff2),"<%s>%s</%s>\n", kol_navn[i], kolonne[i],kol_navn[i] );
+    //strcat(buff3,buff2);
+    write(4,buff2,strlen(buff2));
+  }
+  //strcat(buff3,buff4);
+  
+  
+  
+  return 0;
 }
