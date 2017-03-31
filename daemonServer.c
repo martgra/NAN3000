@@ -22,6 +22,10 @@ char input[50];
 char *sqlOutput;
 int stop =0;
 char buff3[BUFSIZ];
+char sqlTableName[1024];
+char sqlID[1024];
+char sqlName[1024];
+char sqlTelefon[1024];
 void sendHeader(int,int,int,char *);
 int skriv_rad(void *,int , char **,char **);
 int main ()
@@ -31,8 +35,8 @@ int main ()
   struct stat sd_buff;
   int sd, ny_sd,fdE,fdI;
   int file, four_four; 
-  char buffer[BUFSIZ];
-  char *token;
+  char buffer[BUFSIZ],bufferPOST[BUFSIZ];
+  char *token,*tokenPOSTREQ;
   pid_t process_id =0;
   pid_t sid = 0;
   pid_t fid = 0;
@@ -63,7 +67,7 @@ int main ()
       if(sid<0)
 	    exit(1);
       close(STDERR_FILENO);
-      fdE = open("errorlog.log",O_RDWR);
+      fdE = open("errorlog.log",O_RDWR | O_TRUNC);
       dup2(2,fdE);
 
       fdI = open("stdout.txt", O_RDWR | O_TRUNC);
@@ -108,7 +112,8 @@ int main ()
   int p =0;
   
   recv(ny_sd,buffer,sizeof(buffer),0);
-  perror(buffer);
+  strcpy(bufferPOST,buffer);
+  //perror(bufferPOST);
 	token = strtok(buffer, " ");
   
 	while(token != NULL)
@@ -128,6 +133,36 @@ int main ()
 		token = strtok(NULL, " ");
 		k++;
 	}
+
+  /**POST REQUEST DATA**/
+  int post_req =0;
+  tokenPOSTREQ = strtok(bufferPOST, "\n");
+  char contentLength[1024];
+  char contentData[BUFSIZ];
+  
+  while(token != NULL)
+	{
+		
+		if(post_req==7)
+			strcpy(contentData, tokenPOSTREQ);
+		if(post_req>7)
+			break;
+		tokenPOSTREQ = strtok(NULL, "\n");
+		post_req++;
+	}
+
+  /**POST REQUEST DATA**/
+  
+  perror(contentData);
+  perror(contentLength);
+  int iiii = strlen(contentData); 
+
+ 
+  
+  
+  
+
+
   dup2(ny_sd, 1); // redirigerer socket til standard utgang
 
   	if(strlen(filePath) == 1)
@@ -141,13 +176,7 @@ int main ()
       char *zErrMsg =0;
       int sqFd;
       const char* data = "Callback function called";
-      sqFd = sqlite3_open("testb",&db);
-      if( sqFd ){
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      }
-      else{
-        fprintf(stderr, "Opened database successfully\n");
-      }
+      
       
       
       
@@ -177,14 +206,21 @@ int main ()
 		restToken = strtok(NULL, "/");
 	  rI++;
   }
-  perror(restID);
+  
     if(strcmp(requestType,"GET")==0)
     { 
-      perror(buffer);
       if(strcmp(restDB,"testb")==0)
       {
         if(strcmp(restTB,"Informasjon")==0)
         {
+          sqFd = sqlite3_open("testb",&db);
+          //sqFd = sqlite3_open("testb",&db);
+      if( sqFd ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+      }
+      else{
+        fprintf(stderr, "Opened database successfully\n");
+      }
           char sqlQuerry[512];
           memset(&buff3[0], 0, sizeof(buff3)); // clearer alt som ligger i bufferet fra før
           if(strcmp(restID,"\0")==0)
@@ -210,6 +246,7 @@ int main ()
           sprintf(dbName,"<testb>\n");
           strcat(buff3,dbName);
           sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
+          sqlite3_close(db);
           sprintf(dbName,"</testb>\n");
           strcat(buff3,dbName);
           /**XML SOM SENDES**/
@@ -238,8 +275,23 @@ int main ()
 
     if(strcmp(requestType,"POST")==0)
     {
-     
+      sqFd = sqlite3_open("testb",&db);
+      if( sqFd ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+      }
+      else{
+        fprintf(stderr, "Opened database successfully\n");
+      }
+      // char replyPOST[512];
+      // sprintf(replyPOST,"SERVEREN SVARER TILBAKE :):)");
+      // send(ny_sd,replyPOST,strlen(replyPOST),0);
       //DO POST REQUESTS
+      char settInnData[1024];
+      sprintf(settInnData,"INSERT INTO Informasjon VALUES(14,'testUser15','90012300');");
+      perror(settInnData);
+      sqFd = sqlite3_exec(db,settInnData,skriv_rad,(void*)data,&zErrMsg);
+      sqlite3_close(db);
+    
     }
     if(strcmp(requestType,"PUT"))
     {
@@ -371,3 +423,9 @@ int skriv_rad(void *ubrukt,
   
   return 0;
 }
+// void parseXML(char data)
+// {
+//   char dataCopy[BUFSIZ];
+//   strcpy(dataCopy,data);
+
+// }

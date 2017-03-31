@@ -1,10 +1,16 @@
-POST / HTTP/1.1
-Host: 127.0.0.1
-User-Agent: curl/7.47.0
-Accept: */*
-Content-Length: 14
-Content-Type: application/x-www-form-urlencoded
-
-testtest123123: Success
+test fra Thor: Success
+Success
 Opened database successfully
-Operation not permitted
+INSERT INTO Informasjon VALUES(14,'testUser15','90012300');: Operation not permitted
+Upgrade-Insecure-Requests: 1: No such file or directory
+No such file or directory
+Opened database successfully
+Upgrade-Insecure-Requests: 1: No such file or directory
+No such file or directory
+Opened database successfully
+Upgrade-Insecure-Requests: 1: No such file or directory
+No such file or directory
+Opened database successfully
+Connection: keep-alive: No such file or directory
+No such file or directory
+Opened database successfully
