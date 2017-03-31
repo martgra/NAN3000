@@ -146,35 +146,82 @@ int main ()
       else{
         fprintf(stderr, "Opened database successfully\n");
       }
-      char *sqlQuerry;
-      sqlQuerry = "SELECT * FROM Informasjon";
+      
+      
       
 	
   setuid(500);
   setgid(500);
   fstat(file,&sd_buff);
-    
-  
+  char *restToken;
+  char restID[sizeof(filePath)];
+  char restDB[sizeof(filePath)];
+  char restTB[sizeof(filePath)];
+  char rFPathCpy[sizeof(filePath)];
+  strcpy(rFPathCpy,filePath);
+  restToken = strtok(rFPathCpy,"/");
+  int rI=0;
+  memset(&restID[0], 0, sizeof(restID));
+  while(restToken!=NULL)
+  {
+    if(rI==0)
+      strcpy(restDB,restToken);
+    if(rI==1)
+      strcpy(restTB,restToken);
+    if(rI==2)
+      strcpy(restID,restToken);
+    if(rI>2)
+      break;
+		restToken = strtok(NULL, "/");
+	  rI++;
+  }
+  perror(restID);
     if(strcmp(requestType,"GET")==0)
     { 
-       
-      if(strcmp(filePath,"/testb/Informasjon")==0)
+      if(strcmp(restDB,"testb")==0)
       {
-        memset(&buff3[0], 0, sizeof(buff3));
-        char xM[5];
-        sprintf(xM,".xml");
-        char xmlVersion[512];
-        char dbName[512];
-        sprintf(xmlVersion,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        strcat(buff3,xmlVersion);
-        sprintf(dbName,"<testb>\n");
-        strcat(buff3,dbName);
-	      sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
-        sprintf(dbName,"</testb>\n");
-        strcat(buff3,dbName);
-        sendHeader(ny_sd,0,strlen(buff3),xM);
-        send(ny_sd,buff3,strlen(buff3),0);
+        if(strcmp(restTB,"Informasjon")==0)
+        {
+          char sqlQuerry[512];
+          memset(&buff3[0], 0, sizeof(buff3)); // clearer alt som ligger i bufferet fra før
+          if(strcmp(restID,"\0")==0)
+          {
+            sprintf(sqlQuerry,"SELECT * FROM Informasjon;");
+            
+          }
+          else
+          {
+            char testSet[512];
+
+            //memset(&sqlQuerry[0], 0, sizeof(sqlQuerry));
+            sprintf(sqlQuerry,"SELECT * FROM Informasjon WHERE ID = %s;",restID);
+             //sqlQuerry = "SELECT * FROM Informasjon WHERE ID='2';";
+            //perror(testSet);
+          }
+            
+          char xM[5];
+          sprintf(xM,".xml");
+          char xmlVersion[512];
+          char dbName[512];
+          char DTDINFO[512];
+          
+          /**XML SOM SENDES**/
+          sprintf(xmlVersion,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+          strcat(buff3,xmlVersion);
+          sprintf(DTDINFO,"<!DOCTYPE testb SYSTEM \"dbDTD.dtd\">\n");
+          strcat(buff3,DTDINFO);
+          sprintf(dbName,"<testb>\n");
+          strcat(buff3,dbName);
+          sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
+          sprintf(dbName,"</testb>\n");
+          strcat(buff3,dbName);
+          /**XML SOM SENDES**/
+
+          sendHeader(ny_sd,0,strlen(buff3),xM);
+          send(ny_sd,buff3,strlen(buff3),0);
+        }
       }
+          
 
       if(access(filePath,F_OK)!=-1)
       {  
@@ -260,6 +307,7 @@ void sendHeader(int fileDescriptor,int rQ,int size,char *fileInfo)
   if(strcmp(p,"txt")==0) sprintf(contentType,"text/plain");
   if(strcmp(p,"png")==0) sprintf(contentType,"image/png");
   if(strcmp(p,"jpg")==0) sprintf(contentType,"image/jpg");
+  if(strcmp(p,"dtd")==0) sprintf(contentType,"application/xml-dtd");
   if(strcmp(p,"xml")==0) sprintf(contentType,"application/xml");
   if(strcmp(p,"xslt")==0) sprintf(contentType,"application/xml+xslt");
   if(strcmp(p,"css")==0) sprintf(contentType,"text/css");

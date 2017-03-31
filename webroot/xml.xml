@@ -1,1 +1,20 @@
-<note><to>Tove</to><from>Jani</from><heading>Reminder</heading><body>Don't forget me this weekend!</body></note>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE testb SYSTEM "dbDTD.dtd">
+<testb>
+<Informasjon>
+<ID>1</ID>
+<Navn>test</Navn>
+<Telefon>94033153</Telefon>
+</Informasjon>
+<Informasjon>
+<ID>2</ID>
+<Navn>te1st</Navn>
+<Telefon>94033133</Telefon>
+</Informasjon>
+<Informasjon>
+<ID>3</ID>
+<Navn>te3st</Navn>
+<Telefon>94033333</Telefon>
+</Informasjon>
+</testb>
+
