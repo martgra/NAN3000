@@ -37,6 +37,7 @@ int main ()
   int file, four_four; 
   char buffer[BUFSIZ],bufferPOST[BUFSIZ];
   char *token,*tokenPOSTREQ;
+  sqlite3 *db;
   pid_t process_id =0;
   pid_t sid = 0;
   pid_t fid = 0;
@@ -172,7 +173,7 @@ int main ()
 		file=open(filePath,O_RDONLY);	
 
 /**DATABASE TILKOBLING**/
-      sqlite3 *db;
+      
       char *zErrMsg =0;
       int sqFd;
       const char* data = "Callback function called";
@@ -181,8 +182,8 @@ int main ()
       
       
 	
-  setuid(500);
-  setgid(500);
+  setuid(1001);
+  setgid(1001);
   fstat(file,&sd_buff);
   char *restToken;
   char restID[sizeof(filePath)];
@@ -287,7 +288,7 @@ int main ()
       // send(ny_sd,replyPOST,strlen(replyPOST),0);
       //DO POST REQUESTS
       char settInnData[1024];
-      sprintf(settInnData,"INSERT INTO Informasjon VALUES(14,'testUser15','90012300');");
+      sprintf(settInnData,"INSERT INTO Informasjon VALUES(19,'testUser15','90012300');");
       perror(settInnData);
       sqFd = sqlite3_exec(db,settInnData,skriv_rad,(void*)data,&zErrMsg);
       sqlite3_close(db);
@@ -423,9 +424,9 @@ int skriv_rad(void *ubrukt,
   
   return 0;
 }
-// void parseXML(char data)
-// {
-//   char dataCopy[BUFSIZ];
-//   strcpy(dataCopy,data);
+void parseXML(char data)
+{
+  char dataCopy[BUFSIZ];
+  strcpy(dataCopy,data);
 
-// }
+}

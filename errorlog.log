@@ -1,16 +1,0 @@
-test fra Thor: Success
-Success
-Opened database successfully
-INSERT INTO Informasjon VALUES(14,'testUser15','90012300');: Operation not permitted
-Upgrade-Insecure-Requests: 1: No such file or directory
-No such file or directory
-Opened database successfully
-Upgrade-Insecure-Requests: 1: No such file or directory
-No such file or directory
-Opened database successfully
-Upgrade-Insecure-Requests: 1: No such file or directory
-No such file or directory
-Opened database successfully
-Connection: keep-alive: No such file or directory
-No such file or directory
-Opened database successfully
