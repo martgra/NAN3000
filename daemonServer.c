@@ -21,7 +21,8 @@ char httpVer[10];
 char input[50];
 char *sqlOutput;
 int stop =0;
-void sendHeader(int,int,int);
+char buff3[BUFSIZ];
+void sendHeader(int,int,int,char *);
 int skriv_rad(void *,int , char **,char **);
 int main ()
 {
@@ -101,7 +102,7 @@ int main ()
     ny_sd = accept(sd, NULL, NULL);
    if(0==fork()) {
       
-
+  
 	int j=5;
 	int k = 0;
   int p =0;
@@ -147,24 +148,50 @@ int main ()
       }
       char *sqlQuerry;
       sqlQuerry = "SELECT * FROM Informasjon";
+      
 	
   setuid(500);
   setgid(500);
-     fstat(file,&sd_buff);
-  if(access(filePath,F_OK)!=-1)
-  {
-     
-      
+  fstat(file,&sd_buff);
     
-   sendHeader(ny_sd,0,sd_buff.st_size);
-
+  
     if(strcmp(requestType,"GET")==0)
     { 
-      
-      sendfile(ny_sd,file,0,sd_buff.st_size);
-      close(file);
-	sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
+       
+      if(strcmp(filePath,"/testb/Informasjon")==0)
+      {
+        memset(&buff3[0], 0, sizeof(buff3));
+        char xM[5];
+        sprintf(xM,".xml");
+        char xmlVersion[512];
+        char dbName[512];
+        sprintf(xmlVersion,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        strcat(buff3,xmlVersion);
+        sprintf(dbName,"<testb>\n");
+        strcat(buff3,dbName);
+	      sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
+        sprintf(dbName,"</testb>\n");
+        strcat(buff3,dbName);
+        sendHeader(ny_sd,0,strlen(buff3),xM);
+        send(ny_sd,buff3,strlen(buff3),0);
+      }
+
+      if(access(filePath,F_OK)!=-1)
+      {  
+        sendHeader(ny_sd,0,sd_buff.st_size,filePath);
+        sendfile(ny_sd,file,0,sd_buff.st_size);
+        close(file); 
+      }
+      else
+      {
+        four_four = open("404.html",O_RDONLY);
+        fstat(four_four,&sd_buff);
+        sendHeader(ny_sd,1,sd_buff.st_size,filePath);
+        sendfile(ny_sd,four_four,0,sd_buff.st_size);
+        close(four_four);
+      }
     }
+
     if(strcmp(requestType,"POST")==0)
     {
      
@@ -179,15 +206,11 @@ int main ()
       //DO DELETE REQUEST
     }
     
-  }
+  
   else
   {
-   
-    four_four = open("404.html",O_RDONLY);
-    fstat(four_four,&sd_buff);
-    sendHeader(ny_sd,1,sd_buff.st_size);
-    sendfile(ny_sd,four_four,0,sd_buff.st_size);
-    close(four_four);
+    
+    
   }
   
   // Sørger for å stenge socket for skriving og lesing
@@ -204,7 +227,7 @@ int main ()
   return 0;
 }
 
-void sendHeader(int fileDescriptor,int rQ,int size)
+void sendHeader(int fileDescriptor,int rQ,int size,char *fileInfo)
 {
 
 
@@ -215,7 +238,7 @@ void sendHeader(int fileDescriptor,int rQ,int size)
 	time_t currtime;
 	struct tm *loc_time;
 	
-  strcpy(filePathCopy,filePath); // inholdet i filePath blir kopiert til filePathCopy
+  strcpy(filePathCopy,fileInfo); // inholdet i filePath blir kopiert til filePathCopy
 
   char *p = filePathCopy;
 
@@ -284,15 +307,19 @@ int skriv_rad(void *ubrukt,
 
   int i;
   char buff2[1024];
-  char buff3[BUFSIZ];
+  char tbName[1024];
+  sprintf(tbName,"<Informasjon>\n");
+  strcat(buff3,tbName);
   
   for(i=0; i<ant_kol; i++)
   {
     
     snprintf(buff2,sizeof(buff2),"<%s>%s</%s>\n", kol_navn[i], kolonne[i],kol_navn[i] );
-    //strcat(buff3,buff2);
+    strcat(buff3,buff2);
     write(4,buff2,strlen(buff2));
   }
+  sprintf(tbName,"</Informasjon>\n");
+  strcat(buff3,tbName);
   //strcat(buff3,buff4);
   
   
