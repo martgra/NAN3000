@@ -1,36 +1,10 @@
+POST / HTTP/1.1
+Host: 127.0.0.1
+User-Agent: curl/7.47.0
+Accept: */*
+Content-Length: 14
+Content-Type: application/x-www-form-urlencoded
+
+testtest123123: Success
 Opened database successfully
-3: Bad file descriptor
-Opened database successfully
-1: Bad file descriptor
-Opened database successfully
-2: Bad file descriptor
-Opened database successfully
-Bad file descriptor
-d">
-: Bad file descriptor
-Opened database successfully
-Bad file descriptor
-Opened database successfully
-Bad file descriptor
-Opened database successfully
-Bad file descriptor
-Opened database successfully
-Bad file descriptor
-Opened database successfully
-Bad file descriptor
-Opened database successfully
-Bad file descriptor
-Opened database successfully
-1: Bad file descriptor
-<!DOCTYPE testb SYSTEM "dbDTD.dtd">
-: Bad file descriptor
-Opened database successfully
-2: Bad file descriptor
-<!DOCTYPE testb SYSTEM "dbDTD.dtd">
-: Bad file descriptor
-Opened database successfully
-sadasd: Bad file descriptor
-<!DOCTYPE testb SYSTEM "dbDTD.dtd">
-: Bad file descriptor
-Opened database successfully
-Bad file descriptor
+Operation not permitted

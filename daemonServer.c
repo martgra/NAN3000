@@ -106,7 +106,9 @@ int main ()
 	int j=5;
 	int k = 0;
   int p =0;
+  
   recv(ny_sd,buffer,sizeof(buffer),0);
+  perror(buffer);
 	token = strtok(buffer, " ");
   
 	while(token != NULL)
@@ -178,6 +180,7 @@ int main ()
   perror(restID);
     if(strcmp(requestType,"GET")==0)
     { 
+      perror(buffer);
       if(strcmp(restDB,"testb")==0)
       {
         if(strcmp(restTB,"Informasjon")==0)
@@ -187,16 +190,10 @@ int main ()
           if(strcmp(restID,"\0")==0)
           {
             sprintf(sqlQuerry,"SELECT * FROM Informasjon;");
-            
           }
           else
           {
-            char testSet[512];
-
-            //memset(&sqlQuerry[0], 0, sizeof(sqlQuerry));
             sprintf(sqlQuerry,"SELECT * FROM Informasjon WHERE ID = %s;",restID);
-             //sqlQuerry = "SELECT * FROM Informasjon WHERE ID='2';";
-            //perror(testSet);
           }
             
           char xM[5];
