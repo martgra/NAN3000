@@ -28,6 +28,8 @@ char sqlName[1024];
 char sqlTelefon[1024];
 void sendHeader(int,int,int,char *);
 int skriv_rad(void *,int , char **,char **);
+void parseXMLData(char *);
+void dataBaseError(int,sqlite3 *);
 int main ()
 {
 
@@ -75,9 +77,9 @@ int main ()
       dup2(4,fdI);
 
 
-      chdir("/home/nan3000/Desktop/webtjener/webroot");
-      if(chroot("/home/nan3000/Desktop/webtjener/webroot")!=0){
-          perror("chroot /home/nan3000/Desktop/webtjener/webroot");
+      chdir("/home/isrema/Desktop/webtjener/webroot");
+      if(chroot("/home/isrema/Desktop/webtjener/webroot")!=0){
+          perror("chroot /home/isrema/Desktop/webtjener/webroot");
           return 1;
       }
       close(STDIN_FILENO);
@@ -114,9 +116,8 @@ int main ()
   
   recv(ny_sd,buffer,sizeof(buffer),0);
   strcpy(bufferPOST,buffer);
-  //perror(bufferPOST);
 	token = strtok(buffer, " ");
-  
+  memset(&filePath[0], 0, sizeof(filePath));
 	while(token != NULL)
 	{
 		if(k==0)
@@ -153,9 +154,6 @@ int main ()
 	}
 
   /**POST REQUEST DATA**/
-  
-  perror(contentData);
-  perror(contentLength);
   int iiii = strlen(contentData); 
 
  
@@ -194,6 +192,8 @@ int main ()
   restToken = strtok(rFPathCpy,"/");
   int rI=0;
   memset(&restID[0], 0, sizeof(restID));
+  memset(&restDB[0], 0, sizeof(restDB));
+  memset(&restTB[0], 0, sizeof(restTB));
   while(restToken!=NULL)
   {
     if(rI==0)
@@ -207,7 +207,7 @@ int main ()
 		restToken = strtok(NULL, "/");
 	  rI++;
   }
-  
+    char sqlQuerry[512];
     if(strcmp(requestType,"GET")==0)
     { 
       if(strcmp(restDB,"testb")==0)
@@ -215,14 +215,8 @@ int main ()
         if(strcmp(restTB,"Informasjon")==0)
         {
           sqFd = sqlite3_open("testb",&db);
-          //sqFd = sqlite3_open("testb",&db);
-      if( sqFd ){
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      }
-      else{
-        fprintf(stderr, "Opened database successfully\n");
-      }
-          char sqlQuerry[512];
+          dataBaseError(sqFd,db);// feilmeldinger som skrives til error.log ang databasen
+
           memset(&buff3[0], 0, sizeof(buff3)); // clearer alt som ligger i bufferet fra før
           if(strcmp(restID,"\0")==0)
           {
@@ -250,10 +244,11 @@ int main ()
           sqlite3_close(db);
           sprintf(dbName,"</testb>\n");
           strcat(buff3,dbName);
-          /**XML SOM SENDES**/
+          
 
           sendHeader(ny_sd,0,strlen(buff3),xM);
           send(ny_sd,buff3,strlen(buff3),0);
+          /**XML SOM SENDES**/
         }
       }
           
@@ -276,23 +271,17 @@ int main ()
 
     if(strcmp(requestType,"POST")==0)
     {
-      sqFd = sqlite3_open("testb",&db);
-      if( sqFd ){
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+      if(strcmp(filePath,"testb/Informasjon"))
+      {
+        //perror(contentData);
+        parseXMLData(contentData); //leser xml data og lagrer variablene i globale char arrays.
+        
+        sprintf(sqlQuerry,"INSERT INTO Informasjon VALUES(%s,'%s','%s');",sqlID,sqlName,sqlTelefon);
+        sqFd = sqlite3_open("testb",&db);
+        dataBaseError(sqFd,db);
+        sqFd = sqlite3_exec(db,sqlQuerry,skriv_rad,(void*)data,&zErrMsg);
+        sqlite3_close(db);
       }
-      else{
-        fprintf(stderr, "Opened database successfully\n");
-      }
-      // char replyPOST[512];
-      // sprintf(replyPOST,"SERVEREN SVARER TILBAKE :):)");
-      // send(ny_sd,replyPOST,strlen(replyPOST),0);
-      //DO POST REQUESTS
-      char settInnData[1024];
-      sprintf(settInnData,"INSERT INTO Informasjon VALUES(19,'testUser15','90012300');");
-      perror(settInnData);
-      sqFd = sqlite3_exec(db,settInnData,skriv_rad,(void*)data,&zErrMsg);
-      sqlite3_close(db);
-    
     }
     if(strcmp(requestType,"PUT"))
     {
@@ -309,7 +298,6 @@ int main ()
     
     
   }
-  
   // Sørger for å stenge socket for skriving og lesing
   // NB! Frigjør ingen plass i fildeskriptortabellen
     shutdown(ny_sd, SHUT_RDWR);
@@ -385,7 +373,7 @@ void sendHeader(int fileDescriptor,int rQ,int size,char *fileInfo)
   sprintf(buff,"Server: HAL9000 ver1.0 (Ubuntu)\r\n");
 	send(fileDescriptor,buff,strlen(buff),0);
   
-sprintf(buff,"%s\r\n",filePath);
+  sprintf(buff,"%s\r\n",filePath);
 	send(fileDescriptor,buff,strlen(buff),0);
 
   sprintf(buff,"Content-Length: %d\r\n",size);
@@ -398,10 +386,8 @@ sprintf(buff,"%s\r\n",filePath);
 	send(fileDescriptor,buff,strlen(buff),0);
 
 }
-int skriv_rad(void *ubrukt,
-              int ant_kol, 
-              char **kolonne,
-              char **kol_navn) {
+int skriv_rad(void *ubrukt,int ant_kol, char **kolonne,char **kol_navn) 
+{
 
   int i;
   char buff2[1024];
@@ -411,22 +397,41 @@ int skriv_rad(void *ubrukt,
   
   for(i=0; i<ant_kol; i++)
   {
-    
     snprintf(buff2,sizeof(buff2),"<%s>%s</%s>\n", kol_navn[i], kolonne[i],kol_navn[i] );
     strcat(buff3,buff2);
     write(4,buff2,strlen(buff2));
   }
   sprintf(tbName,"</Informasjon>\n");
   strcat(buff3,tbName);
-  //strcat(buff3,buff4);
-  
-  
-  
   return 0;
 }
-void parseXML(char data)
+void parseXMLData(char *PostData)
 {
-  char dataCopy[BUFSIZ];
-  strcpy(dataCopy,data);
+     
+    const char needle1[] = "<ID>";
+    const char needle2[] = "<Navn>";
+    const char needle3[] = "<Telefon>";
+     
+    char haystackCopy[strlen(PostData)]; // strtok ødelegger det den kjører på, så det mekkes kopi
+    strcpy(haystackCopy, PostData);
+    //strstr peker til begynnelse av første forekomst av "needle" i "haystack"
+    //siden vi vil det skal starte etter needle dytter vi indeksen framover lik lengden til needle
+    //strtok returnerer en "substring" fra der den begynner til første forekomst av delimiter
+    //resultatet av strtok(strstr) kopieres til id
+    strcpy(sqlID, strtok((strstr(haystackCopy, needle1)+sizeof(needle1) - 1),"<"));
+ 
+    strcpy(haystackCopy, PostData);
+    strcpy(sqlName, strtok((strstr(haystackCopy, needle2)+sizeof(needle2) - 1),"<"));
+    strcpy(haystackCopy, PostData);
+    strcpy(sqlTelefon, strtok((strstr(haystackCopy, needle3)+sizeof(needle3) - 1),"<"));
 
+}
+void dataBaseError(int fileDescriptor,sqlite3* dataBase)
+{
+  if( fileDescriptor ){
+      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(dataBase));
+  }
+  else{
+      fprintf(stderr, "Opened database successfully\n");
+  }
 }
