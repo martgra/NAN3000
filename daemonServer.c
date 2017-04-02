@@ -230,7 +230,7 @@ int main()
         {
           parseXMLData(contentDATA); //leser xml data og lagrer variablene i globale char arrays.
 
-          sprintf(sqlQuerry, "INSERT INTO Informasjon VALUES(%s,'%s','%s');", sqlID, sqlName, sqlTelefon);
+          sprintf(sqlQuerry, "INSERT INTO Informasjon VALUES(%s,'%s',%s);", sqlID, sqlName, sqlTelefon);
           databaseTilkobling(db,sqlQuerry);
         }
       }
