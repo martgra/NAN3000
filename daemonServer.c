@@ -404,6 +404,8 @@ void parseXMLData(char *PostData)
 
   strcpy(haystackCopy, PostData);
   strcpy(sqlName, strtok((strstr(haystackCopy, needle2) + sizeof(needle2) - 1), "<"));
+  if(sqlName[0]=='/')
+    sprintf(sqlName," ");
   strcpy(haystackCopy, PostData);
   strcpy(sqlTelefon, strtok((strstr(haystackCopy, needle3) + sizeof(needle3) - 1), "<"));
 }
