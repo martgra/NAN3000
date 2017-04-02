@@ -68,4 +68,5 @@ function printTable(xml)
     "</td></tr>";
   }
   document.getElementById("demo").innerHTML = table;
+
 }
