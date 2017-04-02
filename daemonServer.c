@@ -104,7 +104,7 @@ int main()
       int k = 0;
 
       recv(ny_sd, buffer, sizeof(buffer), 0);
-      
+      perror(buffer);
       strcpy(bufferPOST, buffer);
      
       token = strtok(buffer, " ");
@@ -408,6 +408,7 @@ void parseXMLData(char *PostData)
     sprintf(sqlName," ");
   strcpy(haystackCopy, PostData);
   strcpy(sqlTelefon, strtok((strstr(haystackCopy, needle3) + sizeof(needle3) - 1), "<"));
+  
 }
 
 void databaseTilkobling(sqlite3 *sqldatabase,char *sqlString)
