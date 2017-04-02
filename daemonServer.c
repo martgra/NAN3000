@@ -243,7 +243,10 @@ int main()
             if (strcmp(restID, "\0") != 0)
             {
               parseXMLData(contentDATA);
-              sprintf(sqlQuerry, "UPDATE Informasjon SET Navn='%s',Telefon='%s' WHERE ID=%s",sqlName,sqlTelefon,restID);
+              if(sqlTelefon[0]=='/')
+                sprintf(sqlQuerry, "UPDATE Informasjon SET Navn='%s' WHERE ID=%s",sqlName,restID);
+              else
+                sprintf(sqlQuerry, "UPDATE Informasjon SET Navn='%s',Telefon='%s' WHERE ID=%s",sqlName,sqlTelefon,restID);
               databaseTilkobling(db,sqlQuerry);
             }
             
