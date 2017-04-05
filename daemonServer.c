@@ -365,9 +365,6 @@ void sendHeader(int fileDescriptor, int rQ, int size, char *fileInfo)
   sprintf(buff, "Server: HAL9000 ver1.0 (Ubuntu)\r\n");
   send(fileDescriptor, buff, strlen(buff), 0);
 
-  sprintf(buff, "%s\r\n", filePath);
-  send(fileDescriptor, buff, strlen(buff), 0);
-
   sprintf(buff, "Content-Length: %d\r\n", size);
   send(fileDescriptor, buff, strlen(buff), 0);
 
