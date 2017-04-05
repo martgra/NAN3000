@@ -272,12 +272,12 @@ int main()
         }
       }
     }
-    if(strcmp(requestType,"HEAD")==0)
+   if(strcmp(requestType,"HEAD")==0)
     {
       if (access(filePath, F_OK) != -1)
-        sendHeader(ny_sd, 0, strlen(buff3), filePath);
+        sendHeader(ny_sd, 0,  sd_buff.st_size, filePath);
       else
-        sendHeader(ny_sd, 0, strlen(buff3), filePath);
+        sendHeader(ny_sd, 1, 0, filePath);
     }
     else
     {
