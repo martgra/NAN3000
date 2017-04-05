@@ -229,8 +229,12 @@ int main()
         if (strcmp(filePath, "testb/Informasjon"))
         {
           parseXMLData(contentDATA); //leser xml data og lagrer variablene i globale char arrays.
-
-          sprintf(sqlQuerry, "INSERT INTO Informasjon VALUES(%s,'%s',%s);", sqlID, sqlName, sqlTelefon);
+          if(sqlTelefon[0]=='/')
+          {
+            sprintf(sqlQuerry,"INSERT INTO Informasjon VALUES(a,'a','a');");
+          }
+          else
+            sprintf(sqlQuerry, "INSERT INTO Informasjon VALUES(%s,'%s','%s');", sqlID, sqlName, sqlTelefon);
           databaseTilkobling(db,sqlQuerry);
         }
       }
