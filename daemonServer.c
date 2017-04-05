@@ -274,6 +274,8 @@ int main()
     }
    if(strcmp(requestType,"HEAD")==0)
     {
+      if(strcmp(restDB,"testb")==0)
+        sendHeader(ny_sd,0,strlen(buff3),".xml");
       if (access(filePath, F_OK) != -1)
         sendHeader(ny_sd, 0,  sd_buff.st_size, filePath);
       else
